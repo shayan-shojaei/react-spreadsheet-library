@@ -1,0 +1,60 @@
+{
+  "name": "react-spreadsheet-library",
+  "version": "0.1.0",
+  "description": "Raact Spreadsheet Component Library.",
+  "repository": "https://github.com/shayan-shojaei/react-spreadsheet-library",
+  "author": "Shayan Shojaei",
+  "license": "MIT",
+  "main": "build/index.js",
+  "module": "build/index.es.js",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "prepare": "install-peers",
+    "prepublishOnly": "yarn build",
+    "dev": "start-storybook -p 6006",
+    "storybook-build": "build-storybook",
+    "test": "jest",
+    "test-watch": "jest --watch",
+    "lint": "eslint . --ext ts,tsx",
+    "format": "prettier --write .",
+    "format-check": "prettier --check ."
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.3",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-eslint": "^8.0.1",
+    "@rollup/plugin-node-resolve": "^13.1.3",
+    "@storybook/react": "6.4.19",
+    "@testing-library/jest-dom": "^5.16.2",
+    "@testing-library/react": "^12.1.3",
+    "@types/jest": "^27.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "babel-loader": "^8.2.3",
+    "babel-preset-react-app": "^10.0.1",
+    "eslint": "^8.9.0",
+    "eslint-plugin-jest": "^26.1.1",
+    "eslint-plugin-react": "^7.28.0",
+    "identity-obj-proxy": "^3.0.0",
+    "install-peers-cli": "^2.2.0",
+    "jest": "^27.5.1",
+    "node-sass": "^7.0.1",
+    "prettier": "2.5.1",
+    "rollup": "^2.67.2",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-prettier": "^2.2.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.31.2",
+    "sass-loader": "^12.6.0",
+    "ts-jest": "^27.1.3",
+    "typescript": "^4.5.5"
+  }
+}
