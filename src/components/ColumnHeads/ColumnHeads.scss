@@ -3,6 +3,7 @@
 
 .column-head--cell {
   background-color: $alternate-cell-background-color;
+  border-top: $default-cell-border-width solid $default-cell-border-color;
   .cell--display {
     justify-content: center;
   }
@@ -11,4 +12,5 @@
 .column-head--cell:first-child {
   max-width: $default-cell-min-width;
   min-width: auto;
+  border-left: $default-cell-border-width solid $default-cell-border-color;
 }

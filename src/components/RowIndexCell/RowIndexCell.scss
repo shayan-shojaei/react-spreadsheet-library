@@ -6,7 +6,7 @@
   min-width: auto;
   background-color: $alternate-cell-background-color;
   padding: 0;
-
+  border-left: $default-cell-border-width solid $default-cell-border-color;
   .cell--display {
     justify-content: center;
   }
