@@ -2,14 +2,11 @@ const path = require('path');
 
 module.exports = {
   stories: ['../src/components/**/*.stories.tsx'],
-  addons: [],
+  addons: ['@storybook/preset-scss'],
+  core: {
+    builder: 'webpack5'
+  },
   webpackFinal: async (config) => {
-    config.module.rules.push({
-      test: /\.scss$/,
-      use: ['style-loader', 'css-loader', 'sass-loader'],
-      include: path.resolve(__dirname, '../')
-    });
-
     config.module.rules.push({
       test: /\.(ts|tsx)$/,
       loader: require.resolve('babel-loader'),
@@ -17,6 +14,7 @@ module.exports = {
         presets: [['react-app', { flow: false, typescript: true }]]
       }
     });
+
     config.resolve.extensions.push('.ts', '.tsx');
 
     return config;

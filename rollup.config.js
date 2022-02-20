@@ -32,7 +32,9 @@ export default {
       cwd: './'
     }),
     commonjs(),
-    typescript({ useTsconfigDeclarationDir: true }),
+    typescript({
+      useTsconfigDeclarationDir: true
+    }),
     postcss({
       modules: true,
       extract: false,
