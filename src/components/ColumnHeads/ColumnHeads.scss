@@ -1,0 +1,14 @@
+@import '../../assets/styles/colors';
+@import '../../assets/styles/dims';
+
+.column-head--cell {
+  background-color: $alternate-cell-background-color;
+  .cell--display {
+    justify-content: center;
+  }
+}
+
+.column-head--cell:first-child {
+  max-width: $default-cell-min-width;
+  min-width: auto;
+}

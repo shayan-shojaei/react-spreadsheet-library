@@ -1,0 +1,13 @@
+@import '../../assets/styles/colors';
+@import '../../assets/styles/dims';
+
+.row-index--cell {
+  max-width: $default-cell-min-width;
+  min-width: auto;
+  background-color: $alternate-cell-background-color;
+  padding: 0;
+
+  .cell--display {
+    justify-content: center;
+  }
+}
