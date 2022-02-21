@@ -18,7 +18,7 @@ export default function RowIndexCell({
   return (
     <Cell
       role="row-index"
-      data={{ value: rowIndex + 1 }}
+      data={{ value: rowIndex }}
       className={'row-index--cell'}
       tabIndex={tabIndex}
       onClick={() => !!onClick && onClick(rowIndex)}
