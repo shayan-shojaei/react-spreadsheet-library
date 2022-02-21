@@ -1,4 +1,10 @@
-import { createRangeArray, getAlphabetCharAtIndex, isValidNumber } from '.';
+import {
+  arePositionsEqual,
+  createRangeArray,
+  getAlphabetCharAtIndex,
+  isValidNumber
+} from '.';
+import { CellPosition } from './data.types';
 
 describe('createRangeArray', () => {
   test('should return an array from 0 to 10', () => {
@@ -48,5 +54,16 @@ describe('isValidNumber', () => {
   test('should return true for strings with negative and positive symbols', () => {
     expect(isValidNumber('+123.45')).toBeTruthy();
     expect(isValidNumber('-123')).toBeTruthy();
+  });
+});
+
+describe('arePositionsEqual', () => {
+  test('should return true if positions point to the same spot', () => {
+    const posA: CellPosition = { row: 1, column: 4 };
+    const posB: CellPosition = { row: 1, column: 3 };
+    const posC: CellPosition = { row: 1, column: 4 };
+    expect(arePositionsEqual(posA, posB)).toBeFalsy();
+    expect(arePositionsEqual(posA, posC)).toBeTruthy();
+    expect(arePositionsEqual(posB, posC)).toBeFalsy();
   });
 });

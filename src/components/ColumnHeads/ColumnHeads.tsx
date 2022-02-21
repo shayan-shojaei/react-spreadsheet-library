@@ -25,8 +25,8 @@ function ColumnHeads({ totalColumns, onClick, selectedColumns }: IProps) {
             }}
             className={'column-head--cell'}
             tabIndex={column}
-            onClick={() => handleClick(column)}
-            selected={selectedColumns && selectedColumns.includes(column)}
+            onClick={() => handleClick(column - 1)}
+            selected={selectedColumns && selectedColumns.includes(column - 1)}
           />
         );
       })}

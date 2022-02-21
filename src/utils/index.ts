@@ -1,3 +1,5 @@
+import { CellPosition } from './data.types';
+
 export const createRangeArray = (range: number) =>
   Array.from(Array(range).keys());
 
@@ -10,3 +12,6 @@ const NUMBER_REGEX = new RegExp(/^(-|\+)?((\d+)\.?(\d+)?|(\d+)?\.?(\d+))$/);
 export const isValidNumber = (text: string): boolean => {
   return NUMBER_REGEX.test(text);
 };
+
+export const arePositionsEqual = (a: CellPosition, b: CellPosition): boolean =>
+  a.row === b.row && a.column === b.column;
