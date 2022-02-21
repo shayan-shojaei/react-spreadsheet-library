@@ -2,6 +2,7 @@ import React, { CSSProperties } from 'react';
 import { CellData, DataTypes } from '../../utils/data.types';
 import './Cell.scss';
 import cn from 'classnames';
+import { isValidNumber } from '../../utils';
 
 /** Cell Wrapper Props */
 export interface IProps {
@@ -50,7 +51,7 @@ function Cell({
     if (
       !Number.isNaN(Number.parseFloat(newValue)) &&
       !newValue.trim().endsWith('.') &&
-      newValue.trim().match(/^[0-9,.]$/)
+      isValidNumber(newValue.trim())
     ) {
       newValue = newValue.includes('.')
         ? Number.parseFloat(newValue)

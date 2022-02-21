@@ -138,6 +138,7 @@ describe('Cell', () => {
     userEvent.type(input, 'e');
     expect(onValueChange).toHaveBeenLastCalledWith(true);
   });
+
   test('should trigger onClick when clicked', () => {
     const onClick = jest.fn();
 
