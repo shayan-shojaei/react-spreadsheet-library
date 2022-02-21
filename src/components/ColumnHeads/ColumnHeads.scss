@@ -4,9 +4,17 @@
 .column-head--cell {
   background-color: $alternate-cell-background-color;
   border-top: $default-cell-border-width solid $default-cell-border-color;
-  .cell--display {
-    justify-content: center;
-  }
+}
+.cell--display {
+  justify-content: center;
+}
+
+.cell--selected {
+  border-top: $default-cell-border-width solid $selected-cell-border-color;
+}
+
+.cell--highlighted {
+  border-top: $default-cell-border-width solid $highlighted-cell-border-color;
 }
 
 .column-head--cell:first-child {
