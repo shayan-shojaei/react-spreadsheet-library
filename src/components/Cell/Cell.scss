@@ -7,6 +7,7 @@
   height: $default-cell-height;
   background-color: $default-cell-background-color;
   border: $default-cell-border-width solid $default-cell-border-color;
+  box-sizing: border-box;
   cursor: pointer;
   padding: 0 0.5rem;
   overflow: hidden;
@@ -25,6 +26,7 @@
   outline: none;
   border: none;
   background-color: transparent;
+  padding: 0;
 }
 
 .cell--display {
@@ -35,12 +37,15 @@
 }
 
 .cell--selected {
-  border: $default-cell-border-width solid $selected-cell-border-color;
-  box-shadow: 0 1px 5px rgba(black, 0.5);
+  background-color: $selected-cell-background-color;
   z-index: 1;
 }
 
 .cell--highlighted {
-  border: $default-cell-border-width solid $highlighted-cell-border-color;
+  outline: $highlighted-cell-border-width solid $highlighted-cell-border-color;
+  z-index: 2;
+}
+.cell--editing {
+  @include set-box-shadow;
   z-index: 2;
 }

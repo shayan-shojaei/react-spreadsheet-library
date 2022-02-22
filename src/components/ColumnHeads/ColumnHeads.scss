@@ -2,9 +2,13 @@
 @import '../../assets/styles/dims';
 
 .column-head--cell {
-  background-color: $alternate-cell-background-color;
+  background-color: $column-head-background-color;
 
   .cell--display {
     justify-content: center;
+  }
+
+  &.cell--container {
+    border-color: $column-head-border-color;
   }
 }

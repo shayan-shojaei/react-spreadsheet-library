@@ -4,10 +4,14 @@
 .row-index--cell {
   max-width: $default-cell-min-width;
   min-width: auto;
-  background-color: $alternate-cell-background-color;
+  background-color: $row-index-background-color;
   padding: 0;
 
   .cell--display {
     justify-content: center;
+  }
+
+  &.cell--container {
+    border-color: $row-index-border-color;
   }
 }

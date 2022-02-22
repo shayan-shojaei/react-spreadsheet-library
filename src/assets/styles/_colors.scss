@@ -1,5 +1,11 @@
 $default-cell-background-color: rgba(255, 255, 255);
-$alternate-cell-background-color: rgb(245, 245, 245);
-$default-cell-border-color: rgb(220, 220, 220);
-$highlighted-cell-border-color: rgb(13, 115, 199);
-$selected-cell-border-color: rgb(30, 128, 207);
+$column-head-background-color: rgb(222 222 222);
+$row-index-background-color: rgb(237 237 237);
+$default-cell-font-color: black;
+$column-head-font-color: rgb(132 132 132);
+$row-index-font-color: rgb(168 168 168);
+$default-cell-border-color: rgba(0, 0, 0, 0.05);
+$column-head-border-color: rgb(222 222 222);
+$row-index-border-color: rgb(237 237 237);
+$highlighted-cell-border-color: #62e5ea;
+$selected-cell-background-color: #d2f8f9;
