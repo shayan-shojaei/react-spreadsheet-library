@@ -64,7 +64,9 @@ function Cell({
     if (onClick === undefined) return;
 
     let modifer: ModifierKey = undefined;
-    if (e.ctrlKey) {
+    if (e.ctrlKey && e.shiftKey) {
+      modifer = 'ctrl-shift';
+    } else if (e.ctrlKey) {
       modifer = 'ctrl';
     } else if (e.shiftKey) {
       modifer = 'shift';
