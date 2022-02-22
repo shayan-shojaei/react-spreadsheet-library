@@ -10,3 +10,11 @@ export type CellPosition = {
   row: number;
   column: number;
 };
+export type SelectionRange = {
+  fromRow: number;
+  toRow: number;
+  fromColumn: number;
+  toColumn: number;
+};
+
+export type ModifierKey = 'shift' | 'ctrl' | undefined;

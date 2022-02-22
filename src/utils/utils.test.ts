@@ -2,9 +2,11 @@ import {
   arePositionsEqual,
   createRangeArray,
   getAlphabetCharAtIndex,
-  isValidNumber
+  isInRange,
+  isValidNumber,
+  rangesToPositions
 } from '.';
-import { CellPosition } from './data.types';
+import { CellPosition, SelectionRange } from './data.types';
 
 describe('createRangeArray', () => {
   test('should return an array from 0 to 10', () => {
@@ -16,6 +18,16 @@ describe('createRangeArray', () => {
   test('should return an empty array', () => {
     const range = createRangeArray(0);
     expect(range.length).toEqual(0);
+  });
+  test('should return an array with values 5 <= x < 10', () => {
+    const range = createRangeArray(10, 5);
+
+    for (let i = 5; i < 10; i++) {
+      expect(range[i - 5]).toEqual(i);
+    }
+  });
+  test('should not accept max > min', () => {
+    expect(() => createRangeArray(1, 2)).toThrowError(RangeError);
   });
 });
 
@@ -65,5 +77,131 @@ describe('arePositionsEqual', () => {
     expect(arePositionsEqual(posA, posB)).toBeFalsy();
     expect(arePositionsEqual(posA, posC)).toBeTruthy();
     expect(arePositionsEqual(posB, posC)).toBeFalsy();
+  });
+});
+
+describe('isInRange', () => {
+  test('should return true if position is in the range', () => {
+    const posA: CellPosition = { row: 1, column: 4 };
+    const posB: CellPosition = { row: 2, column: 3 };
+    const posC: CellPosition = { row: 4, column: 2 };
+    const rangeA: SelectionRange = {
+      fromRow: 0,
+      fromColumn: 0,
+      toRow: 4,
+      toColumn: 4
+    };
+    const rangeB: SelectionRange = {
+      fromRow: 2,
+      fromColumn: 1,
+      toRow: 5,
+      toColumn: 5
+    };
+
+    expect(isInRange(rangeA, posA)).toBeFalsy();
+    expect(isInRange(rangeA, posB)).toBeTruthy();
+    expect(isInRange(rangeA, posC)).toBeFalsy();
+    expect(isInRange(rangeB, posA)).toBeFalsy();
+    expect(isInRange(rangeB, posB)).toBeTruthy();
+    expect(isInRange(rangeB, posC)).toBeTruthy();
+  });
+});
+
+describe('rangeToPositions', () => {
+  test('should return cell positions for range', () => {
+    const rangeA: SelectionRange = {
+      fromRow: 0,
+      fromColumn: 0,
+      toRow: 4,
+      toColumn: 4
+    };
+    const rangeB: SelectionRange = {
+      fromRow: 2,
+      fromColumn: 2,
+      toRow: 4,
+      toColumn: 4
+    };
+
+    const resultA: CellPosition[] = [
+      { row: 0, column: 0 },
+      { row: 0, column: 1 },
+      { row: 0, column: 2 },
+      { row: 0, column: 3 },
+      { row: 1, column: 0 },
+      { row: 1, column: 1 },
+      { row: 1, column: 2 },
+      { row: 1, column: 3 },
+      { row: 2, column: 0 },
+      { row: 2, column: 1 },
+      { row: 2, column: 2 },
+      { row: 2, column: 3 },
+      { row: 3, column: 0 },
+      { row: 3, column: 1 },
+      { row: 3, column: 2 },
+      { row: 3, column: 3 }
+    ];
+
+    const resultB: CellPosition[] = [
+      { row: 2, column: 2 },
+      { row: 2, column: 3 },
+      { row: 3, column: 2 },
+      { row: 3, column: 3 }
+    ];
+    expect(rangesToPositions(rangeA)).toStrictEqual(resultA);
+    expect(rangesToPositions(rangeB)).toStrictEqual(resultB);
+  });
+  test('should return cell positions for multiple ranges', () => {
+    const rangeA: SelectionRange = {
+      fromRow: 0,
+      fromColumn: 0,
+      toRow: 2,
+      toColumn: 2
+    };
+    const rangeB: SelectionRange = {
+      fromRow: 2,
+      fromColumn: 2,
+      toRow: 4,
+      toColumn: 4
+    };
+
+    const result: CellPosition[] = [
+      { row: 0, column: 0 },
+      { row: 0, column: 1 },
+      { row: 1, column: 0 },
+      { row: 1, column: 1 },
+      { row: 2, column: 2 },
+      { row: 2, column: 3 },
+      { row: 3, column: 2 },
+      { row: 3, column: 3 }
+    ];
+    expect(rangesToPositions(rangeA, rangeB)).toStrictEqual(result);
+  });
+  test('should return cell positions for intersecting ranges', () => {
+    const rangeA: SelectionRange = {
+      fromRow: 0,
+      fromColumn: 0,
+      toRow: 2,
+      toColumn: 2
+    };
+    const rangeB: SelectionRange = {
+      fromRow: 1,
+      fromColumn: 2,
+      toRow: 4,
+      toColumn: 4
+    };
+
+    const result: CellPosition[] = [
+      { row: 0, column: 0 },
+      { row: 0, column: 1 },
+      { row: 1, column: 0 },
+      { row: 1, column: 1 },
+      { row: 1, column: 2 },
+      { row: 1, column: 3 },
+      { row: 2, column: 2 },
+      { row: 2, column: 3 },
+      { row: 3, column: 2 },
+      { row: 3, column: 3 }
+    ];
+    expect(rangesToPositions(rangeA, rangeB)).toStrictEqual(result);
   });
 });
