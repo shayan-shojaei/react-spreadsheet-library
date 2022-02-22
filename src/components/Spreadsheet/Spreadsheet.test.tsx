@@ -6,9 +6,9 @@ import { Data } from '../../utils/data.types';
 import { getAlphabetCharAtIndex } from '../../utils';
 
 const SAMPLE_DATA: Data = [
-  [{ value: 'John' }, { value: 'Doe' }],
-  [{ value: 'Mark' }, { value: 'Rober' }],
-  [{ value: 'Alan' }, { value: 'Turing' }]
+  [{ value: 'John' }, { value: 'Doe' }, { value: 34 }],
+  [{ value: 'Mark' }, { value: 'Rober' }, { value: 34 }],
+  [{ value: 'Alan' }, { value: 'Turing' }, { value: 34 }]
 ];
 
 describe('Spreadsheet', () => {
@@ -35,53 +35,110 @@ describe('Spreadsheet', () => {
     }
   });
 
-  test('should select cell on click', () => {
+  test('should select cell on click', async () => {
     const onSelectionChange = jest.fn();
 
-    const { container } = render(
+    const component = render(
       <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
     );
 
-    const firstDataCell = container.querySelector('[tabindex="4"] span');
+    const firstDataCell = await component.findByText('John');
+    const secondDataCell = await component.findByText('Rober');
+
     userEvent.click(firstDataCell);
 
     expect(onSelectionChange).toBeCalledTimes(2);
     expect(onSelectionChange).toHaveBeenLastCalledWith([{ row: 0, column: 0 }]);
+
+    userEvent.click(secondDataCell);
+
+    expect(onSelectionChange).toBeCalledTimes(3);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([{ row: 1, column: 1 }]);
   });
 
-  test('should select row when index is clicked', () => {
+  test('should select row when index is clicked', async () => {
     const onSelectionChange = jest.fn();
 
-    const { container } = render(
+    const component = render(
       <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
     );
 
-    const firstRowCell = container.querySelector('[tabindex="3"] span');
-    userEvent.click(firstRowCell);
+    const firstRowCell = await component.findByText('1');
+    const secondRowCell = await component.findByText('2');
 
+    userEvent.click(firstRowCell);
     expect(onSelectionChange).toBeCalledTimes(2);
+
     expect(onSelectionChange).toHaveBeenLastCalledWith([
       { row: 0, column: 0 },
       { row: 0, column: 1 },
       { row: 0, column: 2 }
     ]);
+    userEvent.click(secondRowCell);
+    expect(onSelectionChange).toBeCalledTimes(3);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 1, column: 0 },
+      { row: 1, column: 1 },
+      { row: 1, column: 2 }
+    ]);
   });
 
-  test('should select column when title is clicked', () => {
+  test('should select column when title is clicked', async () => {
     const onSelectionChange = jest.fn();
 
-    const { container } = render(
+    const component = render(
       <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
     );
 
-    const firstColumnCell = container.querySelector('[tabindex="1"] span');
-    userEvent.click(firstColumnCell);
+    const firstColumnCell = await component.findByText('A');
+    const secondColumnCell = await component.findByText('B');
 
+    userEvent.click(firstColumnCell);
     expect(onSelectionChange).toBeCalledTimes(2);
     expect(onSelectionChange).toHaveBeenLastCalledWith([
       { row: 0, column: 0 },
       { row: 1, column: 0 },
       { row: 2, column: 0 }
+    ]);
+    userEvent.click(secondColumnCell);
+    expect(onSelectionChange).toBeCalledTimes(3);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 1 },
+      { row: 1, column: 1 },
+      { row: 2, column: 1 }
+    ]);
+  });
+
+  test('should select the data between two columns when the second column is shift-clicked', async () => {
+    const onSelectionChange = jest.fn();
+
+    const component = render(
+      <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
+    );
+
+    const firstColumnCell = await component.findByText('A');
+    const thirdColumnCell = await component.findByText('C');
+
+    userEvent.click(firstColumnCell);
+    expect(onSelectionChange).toBeCalledTimes(2);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 0 },
+      { row: 1, column: 0 },
+      { row: 2, column: 0 }
+    ]);
+
+    userEvent.click(thirdColumnCell, { shiftKey: true });
+    expect(onSelectionChange).toBeCalledTimes(3);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 0 },
+      { row: 1, column: 0 },
+      { row: 2, column: 0 },
+      { row: 0, column: 1 },
+      { row: 1, column: 1 },
+      { row: 2, column: 1 },
+      { row: 0, column: 2 },
+      { row: 1, column: 2 },
+      { row: 2, column: 2 }
     ]);
   });
 });

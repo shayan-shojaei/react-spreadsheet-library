@@ -1,5 +1,5 @@
 import React, { CSSProperties } from 'react';
-import { CellData, DataTypes } from '../../utils/data.types';
+import { CellData, DataTypes, ModifierKey } from '../../utils/data.types';
 import './Cell.scss';
 import cn from 'classnames';
 import { isValidNumber } from '../../utils';
@@ -22,10 +22,8 @@ export interface IProps {
   style?: CSSProperties;
   /** HTML role attribute */
   role?: string;
-  /** Tab index */
-  tabIndex?: number;
   /** On Click */
-  onClick?: () => void;
+  onClick?: (modifier: ModifierKey) => void;
   /** On Double Click */
   onDoubleClick?: () => void;
 }
@@ -38,7 +36,6 @@ function Cell({
   highlighted,
   editing,
   selected,
-  tabIndex,
   onClick,
   onDoubleClick,
   role
@@ -63,6 +60,18 @@ function Cell({
     !!onChange && onChange({ ...data, value: newValue });
   };
 
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (onClick === undefined) return;
+
+    let modifer: ModifierKey = undefined;
+    if (e.ctrlKey) {
+      modifer = 'ctrl';
+    } else if (e.shiftKey) {
+      modifer = 'shift';
+    }
+    onClick(modifer);
+  };
+
   return (
     <div
       className={cn({
@@ -73,8 +82,9 @@ function Cell({
         [className]: !!className
       })}
       style={style}
-      tabIndex={tabIndex}
       role={role}
+      onClick={handleClick}
+      onDoubleClick={onDoubleClick}
     >
       {editing ? (
         <input
@@ -85,11 +95,7 @@ function Cell({
           onChange={handleInputChange}
         />
       ) : (
-        <span
-          onClick={onClick}
-          onDoubleClick={onDoubleClick}
-          className="cell--display"
-        >
+        <span className="cell--display">
           {data.value !== undefined ? `${data.value}` : ''}
         </span>
       )}
@@ -100,22 +106,25 @@ function Cell({
 /**
  * Cell Component
  * @param {DataTypes} data - Cell data object.
- * @param onChange - fires when the cell value **or** state changes, passes in the new cell data object.
- * @param onValueChange - fires when the cell value changes, passes in the new cell value data.
+ * @param {function} onChange - fires when the cell value **or** state changes, passes in the new cell data object.
+ * @param {function} onValueChange - fires when the cell value changes, passes in the new cell value data.
+ * @param {function} onClick - fires when the cell is clicked; *will not fire while the cell is being edited*.
+ * passes in the modifer key if any was pressed.
+ * @param {function} onDoubleClick - fires when the cell is double clicked; *will not fire while the cell is being edited*.
  * @param className - appends to the element class list.
  * @param style - appends to the element style.
  * @param {boolean} highlighted - whether the cell is highlighted or not which indicates the cursor is on the cell.
  * only **one** component should be highlighted at a time but multiple components can be selected.
  * @param {boolean} editing - whether the cell is being edited or not and would render an input if so.
  * only **one** component should be editing at a time but multiple components can be selected.
- * @param {number} tabIndex - tab index in the corresponding spreadsheet.
  */
 export default React.memo(Cell, (prevProps, nextProps) => {
   return (
     prevProps.style === nextProps.style &&
     prevProps.className === nextProps.className &&
     prevProps.onChange === nextProps.onChange &&
-    prevProps.tabIndex === nextProps.tabIndex &&
+    prevProps.onClick === nextProps.onClick &&
+    prevProps.onDoubleClick === nextProps.onDoubleClick &&
     prevProps.highlighted === nextProps.highlighted &&
     prevProps.selected === nextProps.selected &&
     prevProps.editing === nextProps.editing &&

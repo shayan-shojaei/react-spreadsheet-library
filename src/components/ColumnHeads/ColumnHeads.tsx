@@ -1,16 +1,18 @@
 import React from 'react';
 import { createRangeArray, getAlphabetCharAtIndex } from '../../utils';
+import { ModifierKey } from '../../utils/data.types';
 import Cell from '../Cell/Cell';
 import './ColumnHeads.scss';
 
 interface IProps {
   totalColumns: number;
   selectedColumns?: number[];
-  onClick?: (column: number) => void;
+  onClick?: (column: number, modifier: ModifierKey) => void;
 }
 
 function ColumnHeads({ totalColumns, onClick, selectedColumns }: IProps) {
-  const handleClick = (column: number) => !!onClick && onClick(column);
+  const handleClick = (column: number, modifier: ModifierKey) =>
+    !!onClick && onClick(column, modifier);
 
   // a column is added to account for the row indices column
   return (
@@ -24,8 +26,7 @@ function ColumnHeads({ totalColumns, onClick, selectedColumns }: IProps) {
               value: column === 0 ? '' : getAlphabetCharAtIndex(column - 1)
             }}
             className={'column-head--cell'}
-            tabIndex={column}
-            onClick={() => handleClick(column - 1)}
+            onClick={(modifier) => handleClick(column - 1, modifier)}
             selected={selectedColumns && selectedColumns.includes(column - 1)}
           />
         );

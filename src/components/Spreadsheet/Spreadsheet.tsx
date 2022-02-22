@@ -5,8 +5,22 @@ import React, {
   useMemo,
   useState
 } from 'react';
-import { arePositionsEqual, createRangeArray } from '../../utils';
-import { CellData, Data, CellPosition } from '../../utils/data.types';
+import {
+  arePositionsEqual,
+  createRangeArray,
+  createSelectionRangeFromColumn,
+  createSelectionRangeFromPosition,
+  createSelectionRangeFromRow,
+  isInRange,
+  rangesToPositions
+} from '../../utils';
+import {
+  CellData,
+  Data,
+  CellPosition,
+  ModifierKey,
+  SelectionRange
+} from '../../utils/data.types';
 import Cell from '../Cell/Cell';
 import './Spreadsheet.scss';
 import cn from 'classnames';
@@ -70,25 +84,37 @@ export default function Spreadsheet({
     [data]
   );
 
+  const cellsMatrix: CellPosition[] = useMemo(() => {
+    return createRangeArray(rows).flatMap((rowIndex) =>
+      createRangeArray(columns + 1).map((columnIndex) => ({
+        row: rowIndex,
+        column: columnIndex - 1
+      }))
+    );
+  }, [rows, columns]);
+
   const gridStyle = useMemo(
     // 36px is to create a square block for the index of the row, and the rest of the space is equally divided for each column
-    () => ({ gridTemplateColumns: `36px repeat(${columns}, 1fr)`, ...style }),
+    () => {
+      return { gridTemplateColumns: `36px repeat(${columns}, 1fr)`, ...style };
+    },
     [columns, style]
   );
 
-  const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  const [selection, setSelection] = useState<CellPosition[]>([]);
+  const [selectionRanges, setSelectionRanges] = useState<SelectionRange[]>([]);
   const [editingCell, setEditingCell] = useState<CellPosition | null>(null);
   const [highlightedCell, setHighlightedCell] = useState<CellPosition | null>(
     null
   );
+  const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   useEffect(() => {
     if (onSelectionChange !== undefined) {
+      const selection = rangesToPositions(...selectionRanges);
       onSelectionChange(selection);
     }
-  }, [onSelectionChange, selection]);
+  }, [onSelectionChange, selectionRanges]);
 
   useEffect(() => {
     setEditingCell(null);
@@ -96,7 +122,7 @@ export default function Spreadsheet({
 
   const handleCellClick = (position: CellPosition) => {
     setSelectedColumns([]);
-    setSelection([position]);
+    setSelectionRanges([createSelectionRangeFromPosition(position)]);
     setHighlightedCell(position);
   };
   const handleCellDoubleClick = (position: CellPosition) => {
@@ -105,31 +131,61 @@ export default function Spreadsheet({
     setEditingCell(position);
   };
 
-  const handleColumnClick = (column: number) => {
+  const handleColumnClick = (newColumn: number, modifier: ModifierKey) => {
     setEditingCell(null);
     setHighlightedCell(null);
-    if (column === -1) return;
+    setSelectedRows([]);
 
-    setSelectedColumns([column]);
+    if (newColumn === -1) return;
 
-    setSelection(
-      createRangeArray(rows).map((rowIndex) => ({
-        row: rowIndex,
-        column
-      }))
+    // deselect the column was already selected
+    if (selectedColumns.length === 1 && selectedColumns[0] === newColumn) {
+      setSelectedColumns([]);
+      setSelectionRanges([]);
+      return;
+    }
+
+    let newColumns: number[];
+    if (modifier === 'shift') {
+      const min = Math.min(selectedColumns[0], newColumn);
+      const max = Math.max(selectedColumns[0], newColumn);
+      newColumns = createRangeArray(max + 1, min);
+    } else {
+      newColumns = [newColumn];
+    }
+
+    setSelectedColumns(newColumns);
+
+    setSelectionRanges(
+      newColumns.map((column) => createSelectionRangeFromColumn(column, rows))
     );
   };
 
-  const handleRowClick = (row: number) => {
-    setSelectedColumns([]);
-    setSelectedRows([row]);
+  const handleRowClick = (newRow: number, modifier: ModifierKey) => {
     setEditingCell(null);
     setHighlightedCell(null);
-    setSelection(
-      createRangeArray(columns + 1).map((column) => ({
-        row,
-        column
-      }))
+    setSelectedColumns([]);
+
+    // deselect the row was already selected
+    if (selectedRows.length === 1 && selectedRows[0] === newRow) {
+      setSelectedRows([]);
+      setSelectionRanges([]);
+      return;
+    }
+
+    let newRows: number[];
+    if (modifier === 'shift') {
+      const lastSelection = selectedRows[0];
+      const min = Math.min(lastSelection, newRow);
+      const max = Math.max(lastSelection, newRow);
+      newRows = [lastSelection, ...createRangeArray(max + 1, min)];
+    } else {
+      newRows = [newRow];
+    }
+    setSelectedRows(newRows);
+
+    setSelectionRanges(
+      newRows.map((row) => createSelectionRangeFromRow(row, columns))
     );
   };
 
@@ -148,9 +204,6 @@ export default function Spreadsheet({
     }
   };
 
-  const getTabIndex = (position: CellPosition): number =>
-    (position.row + 1) * (columns + 1) + position.column + 1;
-
   return (
     <div
       className={cn({
@@ -164,68 +217,64 @@ export default function Spreadsheet({
         totalColumns={columns}
         onClick={handleColumnClick}
       />
-      {createRangeArray(rows).map((rowIndex) =>
-        createRangeArray(columns + 1).map((columnIndex) => {
-          // add one to the rowIndex to account for the column heads
-          const position: CellPosition = useMemo(
-            () => ({
-              row: rowIndex,
-              column: columnIndex - 1
-            }),
-            [rowIndex, columnIndex]
+      {cellsMatrix.map((position) => {
+        if (position.column === -1) {
+          // render row index
+          return (
+            <RowIndexCell
+              key={`row--${position.row}`}
+              rowIndex={position.row}
+              onClick={handleRowClick}
+              selected={selectedRows.includes(position.row)}
+            />
           );
+        } else {
+          // render actual cells
 
-          if (position.column === -1) {
-            // render row index
-            return (
-              <RowIndexCell
-                key={`row--${position.row}`}
-                rowIndex={position.row}
-                tabIndex={getTabIndex(position)}
-                onClick={handleRowClick}
-                selected={selectedRows.includes(rowIndex)}
-              />
-            );
-          } else {
-            // render actual cells
-
-            const cellSelected = useMemo(() => {
-              for (let selected of selection) {
-                if (arePositionsEqual(selected, position)) {
-                  return true;
-                }
+          const cellSelected = useMemo(() => {
+            for (let range of selectionRanges) {
+              if (isInRange(range, position)) {
+                return true;
               }
-              return false;
-            }, [selection, position]);
+            }
+            return false;
+          }, [selectionRanges, position]);
 
-            const cellHighlighted =
-              highlightedCell !== null && highlightedCell === position;
+          const cellHighlighted =
+            highlightedCell !== null &&
+            arePositionsEqual(highlightedCell, position);
 
-            const cellEditing =
-              editingCell !== null && editingCell === position;
+          const cellEditing =
+            editingCell !== null && arePositionsEqual(editingCell, position);
 
-            const onValueChange = useCallback(
-              (newData) => handleValueChange(newData, position),
-              [position]
-            );
-            return (
-              <Cell
-                key={`cell--${position.row}:${position.column}`}
-                data={data[rowIndex][columnIndex]}
-                style={cellStyle}
-                className={cellClassName}
-                onChange={onValueChange}
-                tabIndex={getTabIndex(position)}
-                selected={cellSelected}
-                onClick={() => handleCellClick(position)}
-                onDoubleClick={() => handleCellDoubleClick(position)}
-                highlighted={cellHighlighted}
-                editing={cellEditing}
-              />
-            );
-          }
-        })
-      )}
+          const onValueChange = useCallback(
+            (newData) => handleValueChange(newData, position),
+            [position]
+          );
+          const onDoubleClick = useCallback(
+            () => handleCellDoubleClick(position),
+            [position]
+          );
+          const onClick = useCallback(
+            () => handleCellClick(position),
+            [position]
+          );
+          return (
+            <Cell
+              key={`cell--${position.row}:${position.column}`}
+              data={data[position.row][position.column]}
+              style={cellStyle}
+              className={cellClassName}
+              onChange={onValueChange}
+              selected={cellSelected}
+              onClick={onClick}
+              onDoubleClick={onDoubleClick}
+              highlighted={cellHighlighted}
+              editing={cellEditing}
+            />
+          );
+        }
+      })}
     </div>
   );
 }
