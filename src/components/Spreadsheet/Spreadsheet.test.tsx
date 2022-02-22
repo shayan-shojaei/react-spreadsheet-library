@@ -203,32 +203,7 @@ describe('Spreadsheet', () => {
       { row: 2, column: 1 }
     ]);
   });
-  test('should deselect cell when it ctrl-clicked while selected', async () => {
-    const onSelectionChange = jest.fn();
 
-    const component = render(
-      <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
-    );
-
-    const firstDataCell = await component.findByText('John');
-    const secondDataCell = await component.findByText('34');
-    const thirdDataCell = await component.findByText('Rober');
-
-    userEvent.click(firstDataCell);
-    userEvent.click(secondDataCell, { shiftKey: true });
-    userEvent.click(thirdDataCell, { ctrlKey: true });
-
-    expect(onSelectionChange).toHaveBeenLastCalledWith([
-      { row: 0, column: 0 },
-      { row: 0, column: 1 },
-      { row: 0, column: 2 },
-      { row: 1, column: 0 },
-      { row: 1, column: 2 },
-      { row: 2, column: 0 },
-      { row: 2, column: 1 },
-      { row: 2, column: 2 }
-    ]);
-  });
   test('should unmount input after selecting another cell', async () => {
     const component = render(<Spreadsheet data={SAMPLE_DATA} />);
 

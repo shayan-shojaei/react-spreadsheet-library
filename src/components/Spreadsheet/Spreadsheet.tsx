@@ -118,12 +118,11 @@ export default function Spreadsheet({
     }
   }, [onSelectionChange, selectionRanges]);
 
-  /* useEffect(() => {
+  useEffect(() => {
     setEditingCell(null);
-  }, [highlightedCell]); */
+  }, [highlightedCell]);
 
   const handleCellClick = (position: CellPosition, modifier: ModifierKey) => {
-    setEditingCell(null);
     if (modifier !== 'ctrl' && modifier !== 'ctrl-shift') {
       setSelectedColumns([]);
       setSelectedRows([]);

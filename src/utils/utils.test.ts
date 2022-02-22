@@ -6,7 +6,8 @@ import {
   isInRange,
   isValidNumber,
   isWithinRange,
-  rangesToPositions
+  rangesToPositions,
+  removeSelectionRange
 } from '.';
 import { CellPosition, SelectionRange } from './data.types';
 
@@ -191,7 +192,6 @@ describe('rangeToPositions', () => {
       toRow: 4,
       toColumn: 4
     };
-
     const result: CellPosition[] = [
       { row: 0, column: 0 },
       { row: 0, column: 1 },
