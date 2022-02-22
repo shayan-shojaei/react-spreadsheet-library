@@ -8,11 +8,13 @@ import React, {
 import {
   arePositionsEqual,
   createRangeArray,
+  createSelectionRangeBetweenPositions,
   createSelectionRangeFromColumn,
   createSelectionRangeFromPosition,
   createSelectionRangeFromRow,
   isInRange,
-  rangesToPositions
+  rangesToPositions,
+  removeSelectionRange
 } from '../../utils';
 import {
   CellData,
@@ -101,11 +103,11 @@ export default function Spreadsheet({
     [columns, style]
   );
 
-  const [selectionRanges, setSelectionRanges] = useState<SelectionRange[]>([]);
   const [editingCell, setEditingCell] = useState<CellPosition | null>(null);
   const [highlightedCell, setHighlightedCell] = useState<CellPosition | null>(
     null
   );
+  const [selectionRanges, setSelectionRanges] = useState<SelectionRange[]>([]);
   const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
@@ -116,17 +118,48 @@ export default function Spreadsheet({
     }
   }, [onSelectionChange, selectionRanges]);
 
-  useEffect(() => {
+  /* useEffect(() => {
     setEditingCell(null);
-  }, [highlightedCell]);
+  }, [highlightedCell]); */
 
-  const handleCellClick = (position: CellPosition) => {
-    setSelectedColumns([]);
-    setSelectionRanges([createSelectionRangeFromPosition(position)]);
-    setHighlightedCell(position);
+  const handleCellClick = (position: CellPosition, modifier: ModifierKey) => {
+    setEditingCell(null);
+    if (modifier !== 'ctrl' && modifier !== 'ctrl-shift') {
+      setSelectedColumns([]);
+      setSelectedRows([]);
+    }
+
+    if (modifier === 'ctrl-shift' && highlightedCell !== null) {
+      setHighlightedCell(position);
+      setSelectionRanges((prev) => [
+        ...prev,
+        createSelectionRangeBetweenPositions(position, highlightedCell)
+      ]);
+    } else if (modifier === 'shift' && highlightedCell !== null) {
+      setSelectionRanges((prev) => [
+        ...prev.slice(0, -1),
+        createSelectionRangeBetweenPositions(position, highlightedCell)
+      ]);
+    } else if (modifier === 'ctrl') {
+      setHighlightedCell(position);
+      const wasCellSelected = isInRange(position, ...selectionRanges);
+      if (!wasCellSelected) {
+        setSelectionRanges((prev) => [
+          ...prev,
+          createSelectionRangeFromPosition(position)
+        ]);
+      } else {
+        const rangeToRemove = createSelectionRangeFromPosition(position);
+        setSelectionRanges((prev) =>
+          removeSelectionRange([...prev], rangeToRemove)
+        );
+      }
+    } else {
+      setHighlightedCell(position);
+      setSelectionRanges([createSelectionRangeFromPosition(position)]);
+    }
   };
   const handleCellDoubleClick = (position: CellPosition) => {
-    setSelectedColumns([]);
     setHighlightedCell(position);
     setEditingCell(position);
   };
@@ -145,11 +178,14 @@ export default function Spreadsheet({
       return;
     }
 
+    // the first element of the selectedColumns array is considered the focused column.
     let newColumns: number[];
     if (modifier === 'shift') {
       const min = Math.min(selectedColumns[0], newColumn);
       const max = Math.max(selectedColumns[0], newColumn);
-      newColumns = createRangeArray(max + 1, min);
+      newColumns = [selectedColumns[0], ...createRangeArray(max + 1, min)];
+    } else if (modifier === 'ctrl') {
+      newColumns = [newColumn, ...selectedColumns];
     } else {
       newColumns = [newColumn];
     }
@@ -173,12 +209,15 @@ export default function Spreadsheet({
       return;
     }
 
+    // the first element of the selectedRows array is considered the focused row.
     let newRows: number[];
     if (modifier === 'shift') {
       const lastSelection = selectedRows[0];
       const min = Math.min(lastSelection, newRow);
       const max = Math.max(lastSelection, newRow);
       newRows = [lastSelection, ...createRangeArray(max + 1, min)];
+    } else if (modifier === 'ctrl') {
+      newRows = [newRow, ...selectedRows];
     } else {
       newRows = [newRow];
     }
@@ -230,15 +269,10 @@ export default function Spreadsheet({
           );
         } else {
           // render actual cells
-
-          const cellSelected = useMemo(() => {
-            for (let range of selectionRanges) {
-              if (isInRange(range, position)) {
-                return true;
-              }
-            }
-            return false;
-          }, [selectionRanges, position]);
+          const cellSelected = useMemo(
+            () => isInRange(position, ...selectionRanges),
+            [selectionRanges, position]
+          );
 
           const cellHighlighted =
             highlightedCell !== null &&
@@ -251,14 +285,6 @@ export default function Spreadsheet({
             (newData) => handleValueChange(newData, position),
             [position]
           );
-          const onDoubleClick = useCallback(
-            () => handleCellDoubleClick(position),
-            [position]
-          );
-          const onClick = useCallback(
-            () => handleCellClick(position),
-            [position]
-          );
           return (
             <Cell
               key={`cell--${position.row}:${position.column}`}
@@ -267,8 +293,8 @@ export default function Spreadsheet({
               className={cellClassName}
               onChange={onValueChange}
               selected={cellSelected}
-              onClick={onClick}
-              onDoubleClick={onDoubleClick}
+              onClick={(modifier) => handleCellClick(position, modifier)}
+              onDoubleClick={() => handleCellDoubleClick(position)}
               highlighted={cellHighlighted}
               editing={cellEditing}
             />

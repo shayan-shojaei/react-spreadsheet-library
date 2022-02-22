@@ -16,14 +16,30 @@ export const isValidNumber = (text: string): boolean => {
 export const arePositionsEqual = (a: CellPosition, b: CellPosition): boolean =>
   a.row === b.row && a.column === b.column;
 
+/** checks whether a cell position is within the range */
 export const isInRange = (
-  range: SelectionRange,
-  position: CellPosition
-): boolean =>
-  position.row >= range.fromRow &&
-  position.row < range.toRow &&
-  position.column >= range.fromColumn &&
-  position.column < range.toColumn;
+  position: CellPosition,
+  ...ranges: SelectionRange[]
+): boolean => {
+  for (let range of ranges) {
+    if (
+      position.row >= range.fromRow &&
+      position.row < range.toRow &&
+      position.column >= range.fromColumn &&
+      position.column < range.toColumn
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/** checks wether selection range `a` is inside the bounds of selection range `b`  */
+export const isWithinRange = (a: SelectionRange, b: SelectionRange): boolean =>
+  a.fromRow >= b.fromRow &&
+  a.toRow <= b.toRow &&
+  a.fromColumn >= b.fromColumn &&
+  a.toColumn <= b.toColumn;
 
 export const createSelectionRangeFromPosition = (
   position: CellPosition
@@ -78,4 +94,95 @@ export const rangesToPositions = (
   }
 
   return Object.values(positions);
+};
+
+export const createSelectionRangeBetweenPositions = (
+  first: CellPosition,
+  second: CellPosition
+): SelectionRange => {
+  const [minRow, maxRow] = [
+    Math.min(first.row, second.row),
+    Math.max(first.row, second.row)
+  ];
+  const [minColumn, maxColumn] = [
+    Math.min(first.column, second.column),
+    Math.max(first.column, second.column)
+  ];
+
+  return {
+    fromRow: minRow,
+    toRow: maxRow + 1,
+    fromColumn: minColumn,
+    toColumn: maxColumn + 1
+  };
+};
+
+export const removeSelectionRange = (
+  ranges: SelectionRange[],
+  toRemove: SelectionRange
+): SelectionRange[] => {
+  return ranges.flatMap((range) => {
+    if (isWithinRange(toRemove, range)) {
+      let newRanges: SelectionRange[] = [];
+      const [minOuterRow, maxOuterRow] = [
+        Math.min(range.fromRow, range.toRow),
+        Math.max(range.fromRow, range.toRow)
+      ];
+      const [minInnerRow, maxInnerRow] = [
+        Math.min(toRemove.fromRow, toRemove.toRow),
+        Math.max(toRemove.fromRow, toRemove.toRow)
+      ];
+      const [minOuterColumn, maxOuterColumn] = [
+        Math.min(range.fromColumn, range.toColumn),
+        Math.max(range.fromColumn, range.toColumn)
+      ];
+      const [minInnerColumn, maxInnerColumn] = [
+        Math.min(toRemove.fromColumn, toRemove.toColumn),
+        Math.max(toRemove.fromColumn, toRemove.toColumn)
+      ];
+
+      // top rect
+      if (minOuterRow < minInnerRow) {
+        newRanges.push({
+          fromRow: minOuterRow,
+          toRow: minInnerRow,
+          fromColumn: minOuterColumn,
+          toColumn: maxOuterColumn
+        });
+      }
+
+      // bottom rect
+      if (maxOuterRow > maxInnerRow) {
+        newRanges.push({
+          fromRow: maxInnerRow,
+          toRow: maxOuterRow,
+          fromColumn: minOuterColumn,
+          toColumn: maxOuterColumn
+        });
+      }
+
+      // left rect
+      if (minOuterColumn < minInnerColumn) {
+        newRanges.push({
+          fromRow: minInnerRow,
+          toRow: maxInnerRow,
+          fromColumn: minOuterColumn,
+          toColumn: minInnerColumn
+        });
+      }
+
+      // right rect
+      if (maxOuterColumn > maxInnerColumn) {
+        newRanges.push({
+          fromRow: minInnerRow,
+          toRow: maxInnerRow,
+          fromColumn: maxInnerColumn,
+          toColumn: maxOuterColumn
+        });
+      }
+
+      return newRanges;
+    }
+    return range;
+  });
 };

@@ -6,8 +6,8 @@ import { Data } from '../../utils/data.types';
 import { getAlphabetCharAtIndex } from '../../utils';
 
 const SAMPLE_DATA: Data = [
-  [{ value: 'John' }, { value: 'Doe' }, { value: 34 }],
-  [{ value: 'Mark' }, { value: 'Rober' }, { value: 34 }],
+  [{ value: 'John' }, { value: 'Doe' }, { value: 14 }],
+  [{ value: 'Mark' }, { value: 'Rober' }, { value: 24 }],
   [{ value: 'Alan' }, { value: 'Turing' }, { value: 34 }]
 ];
 
@@ -140,5 +140,105 @@ describe('Spreadsheet', () => {
       { row: 1, column: 2 },
       { row: 2, column: 2 }
     ]);
+  });
+
+  test('should select multiple cells on ctrl-click', async () => {
+    const onSelectionChange = jest.fn();
+
+    const component = render(
+      <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
+    );
+
+    const firstDataCell = await component.findByText('John');
+    const secondDataCell = await component.findByText('Rober');
+
+    userEvent.click(firstDataCell);
+
+    expect(onSelectionChange).toBeCalledTimes(2);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([{ row: 0, column: 0 }]);
+
+    userEvent.click(secondDataCell, { ctrlKey: true });
+
+    expect(onSelectionChange).toBeCalledTimes(3);
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 0 },
+      { row: 1, column: 1 }
+    ]);
+  });
+  test('should select multiple cells on shift-click and deselect some when a cell within the last bounds is shift-clicked', async () => {
+    const onSelectionChange = jest.fn();
+
+    const component = render(
+      <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
+    );
+
+    const firstDataCell = await component.findByText('John');
+    const secondDataCell = await component.findByText('34');
+    const thirdDataCell = await component.findByText('Turing');
+
+    userEvent.click(firstDataCell);
+
+    expect(onSelectionChange).toHaveBeenLastCalledWith([{ row: 0, column: 0 }]);
+
+    userEvent.click(secondDataCell, { shiftKey: true });
+
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 0 },
+      { row: 0, column: 1 },
+      { row: 0, column: 2 },
+      { row: 1, column: 0 },
+      { row: 1, column: 1 },
+      { row: 1, column: 2 },
+      { row: 2, column: 0 },
+      { row: 2, column: 1 },
+      { row: 2, column: 2 }
+    ]);
+    userEvent.click(thirdDataCell, { shiftKey: true });
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 0 },
+      { row: 0, column: 1 },
+      { row: 1, column: 0 },
+      { row: 1, column: 1 },
+      { row: 2, column: 0 },
+      { row: 2, column: 1 }
+    ]);
+  });
+  test('should deselect cell when it ctrl-clicked while selected', async () => {
+    const onSelectionChange = jest.fn();
+
+    const component = render(
+      <Spreadsheet data={SAMPLE_DATA} onSelectionChange={onSelectionChange} />
+    );
+
+    const firstDataCell = await component.findByText('John');
+    const secondDataCell = await component.findByText('34');
+    const thirdDataCell = await component.findByText('Rober');
+
+    userEvent.click(firstDataCell);
+    userEvent.click(secondDataCell, { shiftKey: true });
+    userEvent.click(thirdDataCell, { ctrlKey: true });
+
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      { row: 0, column: 0 },
+      { row: 0, column: 1 },
+      { row: 0, column: 2 },
+      { row: 1, column: 0 },
+      { row: 1, column: 2 },
+      { row: 2, column: 0 },
+      { row: 2, column: 1 },
+      { row: 2, column: 2 }
+    ]);
+  });
+  test('should unmount input after selecting another cell', async () => {
+    const component = render(<Spreadsheet data={SAMPLE_DATA} />);
+
+    const firstDataCell = await component.findByText('John');
+    const secondDataCell = await component.findByText('34');
+
+    expect(component.container.getElementsByTagName('input').length).toEqual(0);
+    userEvent.dblClick(firstDataCell);
+    expect(component.container.getElementsByTagName('input').length).toEqual(1);
+    userEvent.click(secondDataCell);
+    expect(component.container.getElementsByTagName('input').length).toEqual(0);
   });
 });

@@ -1,9 +1,11 @@
 import {
   arePositionsEqual,
   createRangeArray,
+  createSelectionRangeBetweenPositions,
   getAlphabetCharAtIndex,
   isInRange,
   isValidNumber,
+  isWithinRange,
   rangesToPositions
 } from '.';
 import { CellPosition, SelectionRange } from './data.types';
@@ -98,12 +100,12 @@ describe('isInRange', () => {
       toColumn: 5
     };
 
-    expect(isInRange(rangeA, posA)).toBeFalsy();
-    expect(isInRange(rangeA, posB)).toBeTruthy();
-    expect(isInRange(rangeA, posC)).toBeFalsy();
-    expect(isInRange(rangeB, posA)).toBeFalsy();
-    expect(isInRange(rangeB, posB)).toBeTruthy();
-    expect(isInRange(rangeB, posC)).toBeTruthy();
+    expect(isInRange(posA, rangeA)).toBeFalsy();
+    expect(isInRange(posB, rangeA)).toBeTruthy();
+    expect(isInRange(posC, rangeA)).toBeFalsy();
+    expect(isInRange(posA, rangeB)).toBeFalsy();
+    expect(isInRange(posB, rangeB)).toBeTruthy();
+    expect(isInRange(posC, rangeB)).toBeTruthy();
   });
 });
 
@@ -203,5 +205,100 @@ describe('rangeToPositions', () => {
       { row: 3, column: 3 }
     ];
     expect(rangesToPositions(rangeA, rangeB)).toStrictEqual(result);
+  });
+});
+
+describe('createSelectionRangeBetweenPositions', () => {
+  test('should return selection range between trivial positions', () => {
+    const posA: CellPosition = {
+      row: 0,
+      column: 0
+    };
+    const posB: CellPosition = {
+      row: 3,
+      column: 3
+    };
+
+    const result: SelectionRange = {
+      fromRow: 0,
+      toRow: 4,
+      fromColumn: 0,
+      toColumn: 4
+    };
+    expect(createSelectionRangeBetweenPositions(posA, posB)).toStrictEqual(
+      result
+    );
+  });
+  test('should return selection range between non-trivial positions', () => {
+    const posA: CellPosition = {
+      row: 5,
+      column: 3
+    };
+    const posB: CellPosition = {
+      row: 3,
+      column: 3
+    };
+    const posC: CellPosition = {
+      row: 4,
+      column: 4
+    };
+
+    const resultAB: SelectionRange = {
+      fromRow: 3,
+      toRow: 6,
+      fromColumn: 3,
+      toColumn: 4
+    };
+    const resultAC: SelectionRange = {
+      fromRow: 4,
+      toRow: 6,
+      fromColumn: 3,
+      toColumn: 5
+    };
+    const resultBC: SelectionRange = {
+      fromRow: 3,
+      toRow: 5,
+      fromColumn: 3,
+      toColumn: 5
+    };
+
+    expect(createSelectionRangeBetweenPositions(posA, posB)).toStrictEqual(
+      resultAB
+    );
+    expect(createSelectionRangeBetweenPositions(posA, posC)).toStrictEqual(
+      resultAC
+    );
+    expect(createSelectionRangeBetweenPositions(posB, posC)).toStrictEqual(
+      resultBC
+    );
+    expect(createSelectionRangeBetweenPositions(posB, posA)).toStrictEqual(
+      resultAB
+    );
+    expect(createSelectionRangeBetweenPositions(posC, posA)).toStrictEqual(
+      resultAC
+    );
+    expect(createSelectionRangeBetweenPositions(posC, posB)).toStrictEqual(
+      resultBC
+    );
+  });
+});
+
+describe('isWithinRange', () => {
+  test('should return true if first range contains second range', () => {
+    const rangeA: SelectionRange = {
+      fromRow: 0,
+      toRow: 4,
+      fromColumn: 0,
+      toColumn: 4
+    };
+    const rangeB: SelectionRange = {
+      fromRow: 1,
+      toRow: 3,
+      fromColumn: 1,
+      toColumn: 3
+    };
+
+    expect(isWithinRange(rangeA, rangeB)).toBeFalsy();
+    expect(isWithinRange(rangeB, rangeA)).toBeTruthy();
   });
 });
