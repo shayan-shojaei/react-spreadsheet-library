@@ -6,11 +6,11 @@
   min-width: $default-cell-min-width;
   height: $default-cell-height;
   background-color: $default-cell-background-color;
-  border-right: $default-cell-border-width solid $default-cell-border-color;
-  border-bottom: $default-cell-border-width solid $default-cell-border-color;
+  border: $default-cell-border-width solid $default-cell-border-color;
   cursor: pointer;
   padding: 0 0.5rem;
   overflow: hidden;
+  user-select: none;
 }
 
 %cellText {
